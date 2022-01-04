@@ -144,3 +144,16 @@ func getEncoderInput(_ text: String) -> MLMultiArray?{
 
     return encoderIn
 }
+func getDecoderInput(encoderInput: MLMultiArray) -> Es2EnCharDecoder16BitInput{
+    let encoder = Es2EnCharEncoder16Bit()
+    let encoderOut = try! encoder.prediction(
+      encodedSeq: encoderInput,
+      encoder_lstm_h_in: nil,
+      encoder_lstm_c_in: nil
+      )
+    let decoderIn = initMultiArray(shape: [NSNumber(value: intToEnChar.count)])
+    return Es2EnCharDecoder16BitInput(
+      encodedChar: decoderIn,
+      decoder_lstm_h_in: encoderOut.encoder_lstm_h_out,
+      decoder_lstm_c_in: encoderOut.encoder_lstm_c_out)
+}
