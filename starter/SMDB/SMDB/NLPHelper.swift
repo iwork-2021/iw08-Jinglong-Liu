@@ -122,10 +122,40 @@ func getSentences(text: String) -> [String] {
   // To be replaced
   return []
 }
-
+let maxOutSequenceLength = 87
+let startTokenIndex = 0
+let stopTokenIndex = 1
 func spanishToEnglish(text: String) -> String? {
-  // To be replaced
-  return nil
+    guard let encoderIn = getEncoderInput(text) else {
+        return nil
+    }
+    let decoderIn = getDecoderInput(encoderInput: encoderIn)
+    let decoder = Es2EnCharDecoder16Bit()
+    var translatedText: [Character] = []
+    var doneDecoding = false
+    var decodedIndex = startTokenIndex
+    
+    while !doneDecoding {
+        decoderIn.encodedChar[decodedIndex] = 1
+        
+        let decoderOut = try! decoder.prediction(input: decoderIn)
+        decoderIn.decoder_lstm_h_in = decoderOut.decoder_lstm_h_out
+        decoderIn.decoder_lstm_c_in = decoderOut.decoder_lstm_c_out
+        decoderIn.encodedChar[decodedIndex] = 0
+        
+        decodedIndex = argmax(array: decoderOut.nextCharProbs)
+        if decodedIndex == stopTokenIndex {
+            doneDecoding = true
+        } else {
+            translatedText.append(intToEnChar[decodedIndex]!)
+        }
+        
+        if translatedText.count >= maxOutSequenceLength {
+            doneDecoding = true
+        }
+    }
+    
+    return String(translatedText)
 }
 let esCharToInt = loadCharToIntJsonMap(from: "esCharToInt")
 let intToEnChar = loadIntToCharJsonMap(from: "intToEnChar")
