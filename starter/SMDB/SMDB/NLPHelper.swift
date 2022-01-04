@@ -31,6 +31,7 @@
 /// THE SOFTWARE.
 
 import NaturalLanguage
+import CoreML
 
 func getLanguage(text: String) -> NLLanguage? {
   NLLanguageRecognizer.dominantLanguage(for: text)
@@ -125,4 +126,21 @@ func getSentences(text: String) -> [String] {
 func spanishToEnglish(text: String) -> String? {
   // To be replaced
   return nil
+}
+let esCharToInt = loadCharToIntJsonMap(from: "esCharToInt")
+let intToEnChar = loadIntToCharJsonMap(from: "intToEnChar")
+func getEncoderInput(_ text: String) -> MLMultiArray?{
+    let cleanedText = text.filter { esCharToInt.keys.contains($0) }
+    if cleanedText.isEmpty {
+      return nil
+    }
+    let vocabSize = esCharToInt.count
+    let encoderIn = initMultiArray(shape: [NSNumber(value: cleanedText.count),
+                          NSNumber(value: vocabSize)])
+
+    for (i, c) in cleanedText.enumerated() {
+      encoderIn[i * vocabSize + esCharToInt[c]!] = 1
+    }
+
+    return encoderIn
 }
