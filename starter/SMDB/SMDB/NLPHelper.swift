@@ -120,7 +120,12 @@ func predictSentiment(
 
 func getSentences(text: String) -> [String] {
   // To be replaced
-  return []
+  // return []
+    let tokenizer = NLTokenizer(unit: .sentence)
+    tokenizer.string = text
+    let sentenceRanges = tokenizer.tokens(
+        for: text.startIndex..<text.endIndex)
+    return sentenceRanges.map { String(text[$0]) }
 }
 let maxOutSequenceLength = 87
 let startTokenIndex = 0
@@ -165,7 +170,7 @@ func getEncoderInput(_ text: String) -> MLMultiArray?{
       return nil
     }
     let vocabSize = esCharToInt.count
-    let encoderIn = initMultiArray(shape: [NSNumber(value: cleanedText.count),
+    let encoderIn = initMultiArray(shape: [NSNumber(value: cleanedText.count),1,
                           NSNumber(value: vocabSize)])
 
     for (i, c) in cleanedText.enumerated() {
